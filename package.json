@@ -1,0 +1,73 @@
+{
+  "name": "@andydowell/use-form-state",
+  "version": "1.0.1",
+  "author": "andydowell",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "typings": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "keywords": [
+    "form validation",
+    "form state",
+    "react form"
+  ],
+  "description": "A React hook for managing form state and validation",
+  "engines": {
+    "node": ">=10"
+  },
+  "scripts": {
+    "start": "tsdx watch",
+    "build": "tsdx build",
+    "test": "tsdx test --passWithNoTests",
+    "lint": "tsdx lint",
+    "prepare": "tsdx build",
+    "size": "size-limit",
+    "analyze": "size-limit --why"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "tsdx lint"
+    }
+  },
+  "prettier": {
+    "printWidth": 120,
+    "semi": true,
+    "singleQuote": false,
+    "trailingComma": "es5"
+  },
+  "module": "dist/use-form-state.esm.js",
+  "size-limit": [
+    {
+      "path": "dist/use-form-state.cjs.production.min.js",
+      "limit": "10 KB"
+    },
+    {
+      "path": "dist/use-form-state.esm.js",
+      "limit": "10 KB"
+    }
+  ],
+  "devDependencies": {
+    "@size-limit/preset-small-lib": "^9.0.0",
+    "@types/react": "^18.2.23",
+    "@types/react-dom": "^18.2.8",
+    "husky": "^8.0.3",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "size-limit": "^9.0.0",
+    "tsdx": "^0.14.1",
+    "tslib": "^2.6.2",
+    "typescript": "^5.2.2"
+  },
+  "peerDependencies": {
+    "react": ">=16"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.com/public-packages1/useformstate"
+  },
+  "bugs": {
+    "url": "https://gitlab.com/public-packages1/useformstate/-/issues"
+  }
+}
