@@ -12,50 +12,17 @@ npm install @andydowell/use-form-state
 
 ## Usage
 
-Import the `useFormState` hook and other types from the package:
+### Initializing the Form State
 
 ```javascript
-import { useFormState, FormStateProps } from '@andydowell/use-form-state';
+import { useFormState } from "@andydowell/use-form-state";
+
+const formState = useFormState(formStateProps, options);
 ```
 
-### Defining Form State Props
+Before using the hook, you need to define the `formStateProps`. These props represent the structure of your form and include information such as default values, validation rules, and error messages.
 
-Before using the hook, you need to define the form state props. These props represent the structure of your form and include information such as default values, validation rules, and error messages.
-
-```javascript
-type MyFormData = {
-  email: string,
-  password: string,
-};
-
-const formStateProps: FormStateProps<MyFormData> = {
-  email: {
-    defaultValue: '@',
-    helperText: 'Your Email Address',
-    isRequired: true,
-    validator: value => {
-      return value.length > 1 && value.includes('@');
-    },
-    errorMessage: {
-      required: 'Please enter your email address',
-      format: 'Email address is invalid',
-    },
-  },
-  password: {
-    defaultValue: '',
-    helperText: 'Your Password',
-    isRequired: true,
-    validator: value => {
-      return value.length > 1;
-    },
-    errorMessage: {
-      required: 'Please enter your password',
-    },
-  },
-};
-```
-
-Each field in the form state props is defined by a key-value pair, where the key is the name of the field and the value is an object with the following properties:
+Each field in the `formStateProps` is defined by a key-value pair, where the key is the name of the field and the value is an object with the following properties:
 
 | Property     | Description                                                                                                                                                                                   | Type                                 | Example                                                                           |
 | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ | --------------------------------------------------------------------------------- |
@@ -65,29 +32,29 @@ Each field in the form state props is defined by a key-value pair, where the key
 | helperText   | (Optional) Text that provides additional information or guidance for the form field.                                                                                                          | string                               | 'Please enter a valid email'                                                      |
 | errorMessage | (Optional) An object that defines error messages for specific error types.                                                                                                                    | `{format: string, required: string}` | `{ format: 'Invalid format', required: 'This field is required' }`                |
 
-### Initializing the Form State
+The second parameter `options` is an object with the following properties:
 
-Next, initialize the form state using the `useFormState` hook and the form state props:
+| Property                  | Type   | Description                                                                                   |
+| ------------------------- | ------ | --------------------------------------------------------------------------------------------- |
+| errorUpdateDelayInSeconds | number | (Optional) Specifies the delay in seconds before the error type is updated. Default is `0.5`. |
+
+You can see an example of `formStateProps` and `options` in the [Example](#example) section.
+
+## API
+
+The `useFormState` hook returns an object with the following properties and methods:
 
 ```javascript
-const { state, set, checkIfAllValid, extractStateValue, reset } = useFormState(
-  formStateProps,
-  options
-);
+const { state, set, checkIfAllValid, extractStateValue, reset } = useFormState(formStateProps, options);
 ```
-
-The `options` parameter is an object with the following properties:
-| Property | Type | Description |
-| -------- | ---- | ----------- |
-|errorUpdateDelayInSeconds| number | (Optional) Specifies the delay in seconds before the error type is updated. Default is `0.5`.|
 
 The `state` object contains the current values and validation status of each form field. <br/>
 The `set` function allows you to update the form field values. <br/>
 The `checkIfAllValid` function checks if all fields are valid. <br/>
 The `extractStateValue` function extracts the form data in the specified format. <br/>
-The `reset` function resets the form to its initial state.
+The `reset` function resets the form to its initial state. <br/>
 
-## `state`
+### Form State
 
 Each form field in the `state` object is represented by an object with the following properties:
 
@@ -110,18 +77,13 @@ To update a form field value, use the `set` function:
 set(key, value, setInteracted);
 ```
 
-Example:<br/>
-To update the value of the `email` field:
-
-```javascript
-set('email', 'user@email.com');
-```
-
 | Parameter       | Type                      | Description                                                                               | Example                 |
 | --------------- | ------------------------- | ----------------------------------------------------------------------------------------- | ----------------------- |
 | `key`           | string                    | The key of the field in the form state.                                                   | `'email'`               |
 | `value`         | (type of the field value) | The new value to be set for the field.                                                    | `'example@example.com'` |
 | `setInteracted` | boolean                   | (Optional) Indicates whether the field should be marked as interacted. Default is `true`. | `false`                 |
+
+You can see an example of `set` in the [Example](#example) section.
 
 ### Checking Form Field Validity
 
@@ -145,7 +107,8 @@ The `options` parameter is an object with the following properties:
 | ----------------- | ------- | ------------------------------------------------------------------------------------------------ |
 | `updateErrorType` | boolean | (Optional) Specifies whether the error types of all fields should be updated. Default is `true`. |
 
-The validation will check all form fields based on their defined rules and update their validation status and error messages accordingly.
+The validation will check all form fields based on their defined rules and update their validation status and error messages accordingly. <br/>
+You can see an example of `checkIfAllValid` in the [Example](#example) section.
 
 ### Extracting Form Data
 
@@ -155,14 +118,16 @@ Example:<br/>
 To extract the form data as an object:
 
 ```javascript
-const dataObject = extractStateValue({ format: 'object' });
+const dataObject = extractStateValue({ format: "object" });
 ```
 
 To extract the form data as FormData:
 
 ```javascript
-const formData = extractStateValue({ format: 'formdata' });
+const formData = extractStateValue({ format: "formdata" });
 ```
+
+You can see an example of `extractStateValue` in the [Example](#example) section.
 
 ### Resetting the Form
 
@@ -172,84 +137,78 @@ To reset the form to its initial state, use the `reset` function:
 reset();
 ```
 
-This will clear all form field values and reset their validation status.
+This will clear all form field values and reset their validation status. <br/>
+You can see an example of `reset` in the [Example](#example) section.
 
 ## Example
 
 ```javascript
-const newUser = useFormState<RegisterUser>({
+const newUser = useFormState({
   email: {
-    defaultValue: '',
+    defaultValue: "",
     isRequired: true,
-    validator: (value) => {
-      return value.length > 0 && value.includes('@');
+    validator: value => {
+      return value.length > 0 && value.includes("@");
     },
-    helperText: 'Please enter your email address',
+    helperText: "Please enter your email address",
     errorMessage: {
-      required: 'Email address is required',
-      format: 'Email address is invalid',
+      required: "Email address is required",
+      format: "Email address is invalid",
     },
   },
   password: {
-    defaultValue: '',
+    defaultValue: "",
     isRequired: true,
-    validator: (value) => {
+    validator: value => {
       return value.length > 0;
     },
-    helperText: 'Please enter your password',
+    helperText: "Please enter your password",
     errorMessage: {
-      required: 'Password is required',
+      required: "Password is required",
     },
   },
   confirmPassword: {
-    defaultValue: '',
+    defaultValue: "",
     isRequired: true,
     validator: (value, formState) => {
       return value === formState.password.value;
     },
-    helperText: 'Please confirm your password',
+    helperText: "Please confirm your password",
     errorMessage: {
-      required: 'Password is required',
-      format: 'Password does not match',
+      required: "Password is required",
+      format: "Password does not match",
     },
   },
 });
 
-const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+// ---------------------------------
+
+const onSubmit = async e => {
   e.preventDefault();
   if (!newUser.checkIfAllValid()) return;
 
-  const formdata = newUser.extractStateValue({ format: 'formdata' });
-  console.log(formdata.get('email'));
+  const formdata = newUser.extractStateValue({ format: "formdata" });
+  // ... Submit formdata to server
 };
-
-const { email, password, confirmPassword } = newUser.state;
 
 // ---------------------------------
 
+const { email, password, confirmPassword } = newUser.state;
+
 <form onSubmit={onSubmit}>
   <div>
-    <Input
-      value={email.value}
-      onChange={e => newUser.set('email', e.target.value)}
-    />
+    <Input value={email.value} onChange={e => newUser.set("email", e.target.value)} />
     <p>{email.error?.message || email.helperText}</p>
   </div>
   <div>
-    <Input
-      type="password"
-      value={password.value}
-      onChange={e => newUser.set('password', e.target.value)}
-      error={Boolean(password.error)}
-    />
+    <Input type="password" value={password.value} onChange={e => newUser.set("password", e.target.value)} />
     <p>{password.error?.message || password.helperText}</p>
   </div>
   <div>
     <Input
       type="password"
       value={confirmPassword.value}
-      onChange={e => newUser.set('confirmPassword', e.target.value)}
-      error={Boolean(confirmPassword.error)}
+      onChange={e => newUser.set("confirmPassword", e.target.value)}
     />
     <p>{confirmPassword.error?.message || confirmPassword.helperText}</p>
   </div>

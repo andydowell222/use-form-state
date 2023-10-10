@@ -1,6 +1,6 @@
 {
   "name": "@andydowell/use-form-state",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": "andydowell",
   "license": "MIT",
   "main": "dist/index.js",
@@ -11,7 +11,9 @@
   "keywords": [
     "form validation",
     "form state",
-    "react form"
+    "react form",
+    "use-form-state",
+    "useFormState"
   ],
   "description": "A React hook for managing form state and validation",
   "engines": {
