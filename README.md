@@ -148,7 +148,7 @@ const newUser = useFormState({
     defaultValue: "",
     isRequired: true,
     validator: value => {
-      return value.length > 0 && value.includes("@");
+      return value.includes("@");
     },
     helperText: "Please enter your email address",
     errorMessage: {
@@ -159,9 +159,6 @@ const newUser = useFormState({
   password: {
     defaultValue: "",
     isRequired: true,
-    validator: value => {
-      return value.length > 0;
-    },
     helperText: "Please enter your password",
     errorMessage: {
       required: "Password is required",
