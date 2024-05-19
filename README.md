@@ -152,6 +152,7 @@ const newUser = useFormState({
     validator: value => {
       return value.includes("@");
     },
+    label: "Email",
     helperText: "Please enter your email address",
     errorMessage: {
       required: "Email address is required",
@@ -161,6 +162,7 @@ const newUser = useFormState({
   password: {
     defaultValue: "",
     isRequired: true,
+    label: "Password",
     helperText: "Please enter your password",
     errorMessage: {
       required: "Password is required",
@@ -172,6 +174,7 @@ const newUser = useFormState({
     validator: (value, formState) => {
       return value === formState.password.value;
     },
+    label: "Confirm Password",
     helperText: "Please confirm your password",
     errorMessage: {
       required: "Password is required",
