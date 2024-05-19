@@ -1,12 +1,13 @@
-import { useRef, useState } from 'react';
+import { useRef, useState } from "react";
 
-type ErrorType = 'format' | 'required';
+type ErrorType = "format" | "required";
 
 type FormStateProps<Data> = {
   [Key in keyof Data]: {
     defaultValue: Data[Key];
     isRequired?: boolean;
     validator?: (value: any, formState: FormState<Data>) => boolean;
+    label?: string;
     helperText?: string;
     errorMessage?: { [key in ErrorType]?: string };
   };
@@ -21,6 +22,7 @@ type FormState<Data> = {
 };
 
 type FormFieldState<V = any> = {
+  label: string;
   value: V;
   isValid: boolean;
   isInteracted: boolean;
@@ -34,10 +36,7 @@ type FormFieldState<V = any> = {
 
 // --------------------------------------------------------------------
 
-const useFormState = <Data>(
-  formStateProps: FormStateProps<Data>,
-  options: FormStateOptions = {}
-) => {
+const useFormState = <Data>(formStateProps: FormStateProps<Data>, options: FormStateOptions = {}) => {
   const { errorUpdateDelayInSeconds = 0.5 } = options;
 
   const initialFormState = (() => {
@@ -45,6 +44,7 @@ const useFormState = <Data>(
     for (const key in formStateProps) {
       _state[key] = {
         value: formStateProps[key].defaultValue,
+        label: formStateProps[key].label || "",
         helperText: formStateProps[key].helperText,
         isValid: false,
         isInteracted: false,
@@ -54,15 +54,11 @@ const useFormState = <Data>(
     }
     for (const key in formStateProps) {
       switch (true) {
-        case formStateProps[key].isRequired &&
-          !checkIfRequiredValueFilled(_state[key].value):
+        case formStateProps[key].isRequired && !checkIfRequiredValueFilled(_state[key].value):
           _state[key].isValid = false;
           break;
         case Boolean(formStateProps[key].validator):
-          _state[key].isValid = formStateProps[key].validator!(
-            _state[key].value,
-            _state
-          );
+          _state[key].isValid = formStateProps[key].validator!(_state[key].value, _state);
           break;
         default:
           _state[key].isValid = true;
@@ -86,11 +82,7 @@ const useFormState = <Data>(
 
   // --------------------------------------------------------------------
 
-  const set = <Key extends keyof Data>(
-    key: Key,
-    value: Data[Key],
-    setInteracted: boolean = true
-  ) => {
+  const set = <Key extends keyof Data>(key: Key, value: Data[Key], setInteracted: boolean = true) => {
     setState(_state => {
       _state[key].value = value;
       if (setInteracted) _state[key].isInteracted = true;
@@ -107,40 +99,33 @@ const useFormState = <Data>(
 
     setState(_state => {
       for (let key in _state) {
-        const shouldUpdateErrorType =
-          updateErrorType ?? _state[key].isInteracted;
+        const shouldUpdateErrorType = updateErrorType ?? _state[key].isInteracted;
 
         switch (true) {
-          case formStateProps[key].isRequired &&
-            !checkIfRequiredValueFilled(_state[key].value):
+          case formStateProps[key].isRequired && !checkIfRequiredValueFilled(_state[key].value):
             _state[key].isValid = false;
             _state[key].error = shouldUpdateErrorType
               ? {
-                  type: 'required',
+                  type: "required",
                   message: formStateProps[key].errorMessage?.required,
                 }
               : _state[key].error;
             break;
           case Boolean(formStateProps[key].validator):
-            let isValid = formStateProps[key].validator!(
-              _state[key].value,
-              _state
-            );
+            let isValid = formStateProps[key].validator!(_state[key].value, _state);
             _state[key].isValid = isValid;
             _state[key].error = shouldUpdateErrorType
               ? isValid
                 ? undefined
                 : {
-                    type: 'format',
+                    type: "format",
                     message: formStateProps[key].errorMessage?.format,
                   }
               : _state[key].error;
             break;
           default:
             _state[key].isValid = true;
-            _state[key].error = shouldUpdateErrorType
-              ? undefined
-              : _state[key].error;
+            _state[key].error = shouldUpdateErrorType ? undefined : _state[key].error;
         }
       }
       return { ..._state };
@@ -165,7 +150,7 @@ const useFormState = <Data>(
 
   // --------------------------------------------------------------------
 
-  type DataExtractFormat = 'object' | 'formdata';
+  type DataExtractFormat = "object" | "formdata";
   type DataExtractOptions<F> = {
     format: F;
   };
@@ -174,17 +159,15 @@ const useFormState = <Data>(
     formdata: FormData;
   };
 
-  const extractStateValue = <F extends DataExtractFormat>({
-    format,
-  }: DataExtractOptions<F>): DataExtractOutput[F] => {
+  const extractStateValue = <F extends DataExtractFormat>({ format }: DataExtractOptions<F>): DataExtractOutput[F] => {
     switch (format) {
-      case 'formdata':
+      case "formdata":
         const formData = new FormData();
         Object.entries(state).forEach(([key, data]) => {
           formData.append(key, (data as FormFieldState).value);
         });
         return formData as DataExtractOutput[F];
-      case 'object':
+      case "object":
       default:
         let data = {} as Data;
         for (const key in state) {
@@ -208,24 +191,18 @@ const useFormState = <Data>(
 
 const checkIfRequiredValueFilled = <T>(value: T) => {
   switch (typeof value) {
-    case 'number':
+    case "number":
       if (isNaN(value) || !Number.isFinite(value)) return false;
       return true;
-    case 'object':
+    case "object":
       if (Array.isArray(value)) return value.length > 0;
       if (value == null) return false;
       return Boolean(value);
-    case 'string':
-    case 'boolean':
+    case "string":
+    case "boolean":
     default:
       return Boolean(value);
   }
 };
 
-export {
-  useFormState,
-  FormStateProps,
-  FormState,
-  FormFieldState,
-  FormStateOptions,
-};
+export { useFormState, FormStateProps, FormState, FormFieldState, FormStateOptions };
