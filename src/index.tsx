@@ -1,6 +1,6 @@
 export {
   useFormState,
-  FormStateProps,
+  FormFieldParams,
   FormState,
   FormFieldState,
   FormStateOptions,

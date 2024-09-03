@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 
 type ErrorType = "format" | "required";
 
-type FormStateProps<Data> = {
+type FormFieldParams<Data> = {
   [Key in keyof Data]: {
     defaultValue: Data[Key];
     isRequired?: boolean;
@@ -36,29 +36,29 @@ type FormFieldState<V = any> = {
 
 // --------------------------------------------------------------------
 
-const useFormState = <Data>(formStateProps: FormStateProps<Data>, options: FormStateOptions = {}) => {
+const useFormState = <Data>(formFieldParams: FormFieldParams<Data>, options: FormStateOptions = {}) => {
   const { errorUpdateDelayInSeconds = 0.5 } = options;
 
   const initialFormState = (() => {
     const _state = {} as FormState<Data>;
-    for (const key in formStateProps) {
+    for (const key in formFieldParams) {
       _state[key] = {
-        value: formStateProps[key].defaultValue,
-        label: formStateProps[key].label || "",
-        helperText: formStateProps[key].helperText,
+        value: formFieldParams[key].defaultValue,
+        label: formFieldParams[key].label || "",
+        helperText: formFieldParams[key].helperText,
         isValid: false,
         isInteracted: false,
-        isRequired: !!formStateProps[key].isRequired,
+        isRequired: !!formFieldParams[key].isRequired,
         error: undefined,
       };
     }
-    for (const key in formStateProps) {
+    for (const key in formFieldParams) {
       switch (true) {
-        case formStateProps[key].isRequired && !checkIfRequiredValueFilled(_state[key].value):
+        case formFieldParams[key].isRequired && !checkIfRequiredValueFilled(_state[key].value):
           _state[key].isValid = false;
           break;
-        case Boolean(formStateProps[key].validator):
-          _state[key].isValid = formStateProps[key].validator!(_state[key].value, _state);
+        case Boolean(formFieldParams[key].validator):
+          _state[key].isValid = formFieldParams[key].validator!(_state[key].value, _state);
           break;
         default:
           _state[key].isValid = true;
@@ -102,24 +102,24 @@ const useFormState = <Data>(formStateProps: FormStateProps<Data>, options: FormS
         const shouldUpdateErrorType = updateErrorType ?? _state[key].isInteracted;
 
         switch (true) {
-          case formStateProps[key].isRequired && !checkIfRequiredValueFilled(_state[key].value):
+          case formFieldParams[key].isRequired && !checkIfRequiredValueFilled(_state[key].value):
             _state[key].isValid = false;
             _state[key].error = shouldUpdateErrorType
               ? {
                   type: "required",
-                  message: formStateProps[key].errorMessage?.required,
+                  message: formFieldParams[key].errorMessage?.required,
                 }
               : _state[key].error;
             break;
-          case Boolean(formStateProps[key].validator):
-            let isValid = formStateProps[key].validator!(_state[key].value, _state);
+          case Boolean(formFieldParams[key].validator):
+            let isValid = formFieldParams[key].validator!(_state[key].value, _state);
             _state[key].isValid = isValid;
             _state[key].error = shouldUpdateErrorType
               ? isValid
                 ? undefined
                 : {
                     type: "format",
-                    message: formStateProps[key].errorMessage?.format,
+                    message: formFieldParams[key].errorMessage?.format,
                   }
               : _state[key].error;
             break;
@@ -205,4 +205,4 @@ const checkIfRequiredValueFilled = <T>(value: T) => {
   }
 };
 
-export { useFormState, FormStateProps, FormState, FormFieldState, FormStateOptions };
+export { useFormState, FormFieldParams, FormState, FormFieldState, FormStateOptions };

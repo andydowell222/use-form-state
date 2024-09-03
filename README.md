@@ -17,12 +17,12 @@ npm install @andydowell/use-form-state
 ```javascript
 import { useFormState } from "@andydowell/use-form-state";
 
-const formState = useFormState(formStateProps, options);
+const formState = useFormState(formFieldParams, options);
 ```
 
-Before using the hook, you need to define the `formStateProps`. These props represent the structure of your form and include information such as default values, validation rules, and error messages.
+Before using the hook, you need to define the `formFieldParams`. These props represent the structure of your form and include information such as default values, validation rules, and error messages.
 
-Each field in the `formStateProps` is defined by a key-value pair, where the key is the name of the field and the value is an object with the following properties:
+Each field in the `formFieldParams` is defined by a key-value pair, where the key is the name of the field and the value is an object with the following properties:
 
 | Property     | Description                                                                                                                                                                                   | Type                                 | Example                                                                           |
 | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ | --------------------------------------------------------------------------------- |
@@ -39,14 +39,14 @@ The second parameter `options` is an object with the following properties:
 | ------------------------- | ------ | --------------------------------------------------------------------------------------------- |
 | errorUpdateDelayInSeconds | number | (Optional) Specifies the delay in seconds before the error type is updated. Default is `0.5`. |
 
-You can see an example of `formStateProps` and `options` in the [Example](#example) section.
+You can see an example of `formFieldParams` and `options` in the [Example](#example) section.
 
 ## API
 
 The `useFormState` hook returns an object with the following properties and methods:
 
 ```javascript
-const { state, set, checkIfAllValid, extractStateValue, reset } = useFormState(formStateProps, options);
+const { state, set, checkIfAllValid, extractStateValue, reset } = useFormState(formFieldParams, options);
 ```
 
 The `state` object contains the current values and validation status of each form field. <br/>
