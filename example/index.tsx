@@ -1,5 +1,5 @@
-import { createRoot } from 'react-dom/client';
-import * as React from 'react';
+import { createRoot } from "react-dom/client";
+import * as React from "react";
 import { useFormState } from "../.";
 // import { useFormState } from '@andydowell/use-form-state';
 
@@ -12,38 +12,38 @@ type NewUser = {
 const useNewUserFormState = () => {
   const newUser = useFormState<NewUser>({
     email: {
-      defaultValue: '@',
-      helperText: 'Your Email Address',
+      defaultValue: "@",
+      helperText: "Your Email Address",
       isRequired: true,
       validator: value => {
         return value.length > 1 && value.includes("@");
       },
       errorMessage: {
-        required: 'Please enter your email address',
-        format: 'Email address is invalid',
+        required: "Please enter your email address",
+        format: "Email address is invalid",
       },
     },
     password: {
-      defaultValue: '',
-      helperText: 'Your Password',
+      defaultValue: "",
+      helperText: "Your Password",
       isRequired: true,
       validator: value => {
         return value.length > 1;
       },
       errorMessage: {
-        required: 'Please enter your password',
+        required: "Please enter your password",
       },
     },
     confirmPassword: {
-      defaultValue: '',
-      helperText: 'Confirm Your Password',
+      defaultValue: "",
+      helperText: "Confirm Your Password",
       isRequired: true,
       validator: value => {
         return value === newUser.state.password.value;
       },
       errorMessage: {
-        required: 'Please enter your password again',
-        format: 'Password does not match',
+        required: "Please enter your password again",
+        format: "Password does not match",
       },
     },
   });
@@ -58,7 +58,7 @@ const Form = () => {
     e.preventDefault();
     const isValid = newUser.checkIfAllValid();
     if (!isValid) return;
-    console.table(newUser.extractStateValue({ format: 'object' }));
+    console.table(newUser.extractStateValue({ format: "object" }));
   };
 
   const { email, password, confirmPassword } = newUser.state;
@@ -73,14 +73,14 @@ const Form = () => {
             type="text"
             name="email"
             value={email.value}
-            onChange={e => newUser.set('email', e.target.value)}
+            onChange={e => newUser.set("email", e.target.value)}
           />
-          {email.isValid ? '✔️' : '❌'}
+          {email.isValid ? "✔️" : "❌"}
           <p
             style={{
               margin: 0,
-              color: email.error ? 'red' : 'grey',
-              fontSize: '0.9rem',
+              color: email.error ? "red" : "grey",
+              fontSize: "0.9rem",
             }}
           >
             {email.error?.message || email.helperText}
@@ -93,14 +93,14 @@ const Form = () => {
             type="password"
             name="password"
             value={password.value}
-            onChange={e => newUser.set('password', e.target.value)}
+            onChange={e => newUser.set("password", e.target.value)}
           />
-          {password.isValid ? '✔️' : '❌'}
+          {password.isValid ? "✔️" : "❌"}
           <p
             style={{
               margin: 0,
-              color: password.error ? 'red' : 'grey',
-              fontSize: '0.9rem',
+              color: password.error ? "red" : "grey",
+              fontSize: "0.9rem",
             }}
           >
             {password.error?.message || password.helperText}
@@ -113,14 +113,14 @@ const Form = () => {
             type="password"
             name="confirmPassword"
             value={confirmPassword.value}
-            onChange={e => newUser.set('confirmPassword', e.target.value)}
+            onChange={e => newUser.set("confirmPassword", e.target.value)}
           />
-          {confirmPassword.isValid ? '✔️' : '❌'}
+          {confirmPassword.isValid ? "✔️" : "❌"}
           <p
             style={{
               margin: 0,
-              color: confirmPassword.error ? 'red' : 'grey',
-              fontSize: '0.9rem',
+              color: confirmPassword.error ? "red" : "grey",
+              fontSize: "0.9rem",
             }}
           >
             {confirmPassword.error?.message || confirmPassword.helperText}
@@ -137,6 +137,6 @@ const Form = () => {
   );
 };
 
-const domNode = document.getElementById('root')!;
+const domNode = document.getElementById("root")!;
 const root = createRoot(domNode);
 root.render(<Form />);
