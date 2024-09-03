@@ -1,7 +1,7 @@
 import { createRoot } from 'react-dom/client';
 import * as React from 'react';
-// import { useFormState } from '../.';
-import { useFormState } from '@andydowell/use-form-state';
+import { useFormState } from "../.";
+// import { useFormState } from '@andydowell/use-form-state';
 
 type NewUser = {
   email: string;
@@ -15,8 +15,8 @@ const useNewUserFormState = () => {
       defaultValue: '@',
       helperText: 'Your Email Address',
       isRequired: true,
-      validator: (value: string) => {
-        return value.length > 1 && value.includes('@');
+      validator: value => {
+        return value.length > 1 && value.includes("@");
       },
       errorMessage: {
         required: 'Please enter your email address',
@@ -27,7 +27,7 @@ const useNewUserFormState = () => {
       defaultValue: '',
       helperText: 'Your Password',
       isRequired: true,
-      validator: (value: string) => {
+      validator: value => {
         return value.length > 1;
       },
       errorMessage: {
@@ -38,7 +38,7 @@ const useNewUserFormState = () => {
       defaultValue: '',
       helperText: 'Confirm Your Password',
       isRequired: true,
-      validator: (value: string) => {
+      validator: value => {
         return value === newUser.state.password.value;
       },
       errorMessage: {

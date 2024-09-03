@@ -6,7 +6,7 @@ type FormFieldParams<Data> = {
   [Key in keyof Data]: {
     defaultValue: Data[Key];
     isRequired?: boolean;
-    validator?: (value: any, formState: FormState<Data>) => boolean;
+    validator?: (value: Data[Key], formState: FormState<Data>) => boolean;
     label?: string;
     helperText?: string;
     errorMessage?: { [key in ErrorType]?: string };
