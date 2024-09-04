@@ -54,7 +54,7 @@ const useFormState = <Data>(formFieldParams: FormFieldParams<Data>, options: For
     }
     for (const key in formFieldParams) {
       switch (true) {
-        case formFieldParams[key].isRequired && !checkIfRequiredValueFilled(_state[key].value):
+        case _state[key].isRequired && !checkIfRequiredValueFilled(_state[key].value):
           _state[key].isValid = false;
           break;
         case Boolean(formFieldParams[key].validator):
@@ -102,7 +102,7 @@ const useFormState = <Data>(formFieldParams: FormFieldParams<Data>, options: For
         const shouldUpdateErrorType = updateErrorType ?? _state[key].isInteracted;
 
         switch (true) {
-          case formFieldParams[key].isRequired && !checkIfRequiredValueFilled(_state[key].value):
+          case _state[key].isRequired && !checkIfRequiredValueFilled(_state[key].value):
             _state[key].isValid = false;
             _state[key].error = shouldUpdateErrorType
               ? {
