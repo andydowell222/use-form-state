@@ -14,36 +14,42 @@ const useNewUserFormState = () => {
     email: {
       defaultValue: "@",
       helperText: "Your Email Address",
-      isRequired: true,
-      validator: value => {
-        return value.length > 1 && value.includes("@");
-      },
-      errorMessage: {
-        required: "Please enter your email address",
-        format: "Email address is invalid",
+      required: { message: "Please enter your email address" },
+      validation: {
+        longerThanOneChar: {
+          validator: value => value.length > 1,
+          message: "Email address must be longer than 1 character",
+        },
+        ["has-add-sign"]: {
+          validator: value => value.includes("@"),
+          message: "Email address must contain '@'",
+        },
       },
     },
     password: {
       defaultValue: "",
       helperText: "Your Password",
-      isRequired: true,
-      validator: value => {
-        return value.length > 1;
-      },
-      errorMessage: {
-        required: "Please enter your password",
+      required: { message: "Please enter your password" },
+      validation: {
+        longerThanOneChar: {
+          validator: value => value.length > 1,
+          message: "Password must be longer than 1 character",
+        },
       },
     },
     confirmPassword: {
       defaultValue: "",
       helperText: "Confirm Your Password",
-      isRequired: true,
-      validator: value => {
-        return value === newUser.state.password.value;
-      },
-      errorMessage: {
-        required: "Please enter your password again",
-        format: "Password does not match",
+      required: { message: "Please enter your password again" },
+      validation: {
+        longerThanOneChar: {
+          validator: value => value.length > 1,
+          message: "Password must be longer than 1 character",
+        },
+        matchPassword: {
+          validator: (value, state) => value === state.password.value,
+          message: "Passwords do not match",
+        },
       },
     },
   });
@@ -83,7 +89,8 @@ const Form = () => {
               fontSize: "0.9rem",
             }}
           >
-            {email.error?.message || email.helperText}
+            {email.error?.type} <br />
+            {email.error?.message || email.helperText} <br />
           </p>
         </div>
         <div style={{ marginBottom: 8 }}>
@@ -103,7 +110,8 @@ const Form = () => {
               fontSize: "0.9rem",
             }}
           >
-            {password.error?.message || password.helperText}
+            {password.error?.type} <br />
+            {password.error?.message || password.helperText} <br />
           </p>
         </div>
         <div style={{ marginBottom: 8 }}>
@@ -123,7 +131,8 @@ const Form = () => {
               fontSize: "0.9rem",
             }}
           >
-            {confirmPassword.error?.message || confirmPassword.helperText}
+            {confirmPassword.error?.type} <br />
+            {confirmPassword.error?.message || confirmPassword.helperText} <br />
           </p>
         </div>
         <button type="submit" style={{ marginRight: 8 }}>

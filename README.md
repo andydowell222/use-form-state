@@ -24,14 +24,13 @@ Before using the hook, you need to define the `formFieldParams`. These props rep
 
 Each field in the `formFieldParams` is defined by a key-value pair, where the key is the name of the field and the value is an object with the following properties:
 
-| Property     | Description                                                                                                                                                                                   | Type                                 | Example                                                                           |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ | --------------------------------------------------------------------------------- |
-| defaultValue | The default value for the form field.                                                                                                                                                         |                                      | ""                                                                                |
-| isRequired   | (Optional) Specifies whether the form field is required.                                                                                                                                      | boolean                              |
-| validator    | (Optional) A function that validates the form field value. The first param is the input value, second param is the form state, which the value can be validated using other form field value. | (value, state) => boolean            | `(confirmPassword, state) => { return confirmPassword === state.password.value }` |
-| label | (Optional) Default as empty string (`""`). | string | 'Email' |
-| helperText   | (Optional) Text that provides additional information or guidance for the form field.                                                                                                          | string                               | 'Please enter a valid email'                                                      |
-| errorMessage | (Optional) An object that defines error messages for specific error types.                                                                                                                    | `{format: string, required: string}` | `{ format: 'Invalid format', required: 'This field is required' }`                |
+| Property     | Description                                                                                                                                                                                                                             | Type                                                               | Example                                                                                                                |
+| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
+| defaultValue | The default value for the form field.                                                                                                                                                                                                   |                                                                    | ""                                                                                                                     |
+| required     | (Optional) Specifies whether the form field is required.                                                                                                                                                                                | boolean                                                            |
+| validation   | (Optional) An object that defines custom validation rules for the form field. Each rule is represented by a key-value pair, where the key is the name of the rule and the value is an object with `validator` and `message` properties. | `{[key]: {validator: (value, state) => boolean, message: string}}` | `{ longerThanOneChar: { validator: value => value.length > 1, message: 'Password must be longer than 1 character' } }` |
+| label        | (Optional) Default as empty string (`""`).                                                                                                                                                                                              | string                                                             | 'Email'                                                                                                                |
+| helperText   | (Optional) Text that provides additional information or guidance for the form field.                                                                                                                                                    | string                                                             | 'Please enter a valid email'                                                                                           |
 
 The second parameter `options` is an object with the following properties:
 
@@ -59,15 +58,15 @@ The `reset` function resets the form to its initial state. <br/>
 
 Each form field in the `state` object is represented by an object with the following properties:
 
-| Property       | Description                                                                                                                                                                                                      | Example Usage                                                                    | Example Output                                                     |
-| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `value`        | The current value of the form field.                                                                                                                                                                             | `state.email.value`                                                              |
-| `isValid`      | Indicates whether the value of the form field is valid. Required fields are considered valid if they are filled. If a validator is provided, the value will be validated against the validator function.         | `state.email.isValid`                                                            |
-| `isInteracted` | Indicates whether the form field has been interacted with (user has changed the value).                                                                                                                          | `state.email.isInteracted`                                                       |
-| `isRequired`   | Indicates whether the form field is required.                                                                                                                                                                    | `state.email.isRequired`                                                         |
-| `label` | The label of the form field. | `state.email.label` | 'Email' |
-| `helperText`   | A helper text that provides additional information or instructions for the form field.                                                                                                                           | `state.email.helperText`                                                         |
-| `error`        | An object that represents an error associated with the form field. It has two properties: `type` (the type of error) and `message` (the error message). If there is no error, this property will be `undefined`. | `state.email.error`<br>`state.email.error?.type`<br>`state.email.error?.message` | `{ type: "required", message: "Please enter your email address" }` |
+| Property       | Description                                                                                                                                                                                                           | Example Usage                                                                    | Example Output                                                     |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `value`        | The current value of the form field.                                                                                                                                                                                  | `state.email.value`                                                              |
+| `isValid`      | Indicates whether the value of the form field is valid. Required fields are considered valid if they are filled. If validation param is provided, the value will be validated against the validator functions inside. | `state.email.isValid`                                                            |
+| `isInteracted` | Indicates whether the form field has been interacted with (user has changed the value).                                                                                                                               | `state.email.isInteracted`                                                       |
+| `isRequired`   | Indicates whether the form field is required.                                                                                                                                                                         | `state.email.isRequired`                                                         |
+| `label`        | The label of the form field.                                                                                                                                                                                          | `state.email.label`                                                              | 'Email'                                                            |
+| `helperText`   | A helper text that provides additional information or instructions for the form field.                                                                                                                                | `state.email.helperText`                                                         |
+| `error`        | An object that represents an error associated with the form field. It has two properties: `type` (the type of error) and `message` (the error message). If there is no error, this property will be `undefined`.      | `state.email.error`<br>`state.email.error?.type`<br>`state.email.error?.message` | `{ type: "required", message: "Please enter your email address" }` |
 
 `error` is not updated immediately when the value of a form field changes. Instead, it is updated after a delay (default is 0.5 seconds) to prevent the error message from flashing when the user is typing. If the field is not interacted with, the error will not be updated. Running `checkIfAllValid({ updateErrorType: true })` will update all errors immediately.
 
@@ -147,38 +146,44 @@ You can see an example of `reset` in the [Example](#example) section.
 ```javascript
 const newUser = useFormState({
   email: {
-    defaultValue: "",
-    isRequired: true,
-    validator: value => {
-      return value.includes("@");
-    },
-    label: "Email",
-    helperText: "Please enter your email address",
-    errorMessage: {
-      required: "Email address is required",
-      format: "Email address is invalid",
+    defaultValue: "@",
+    helperText: "Your Email Address",
+    required: { message: "Please enter your email address" },
+    validation: {
+      longerThanOneChar: {
+        validator: value => value.length > 1,
+        message: "Email address must be longer than 1 character",
+      },
+      ["has-add-sign"]: {
+        validator: value => value.includes("@"),
+        message: "Email address must contain '@'",
+      },
     },
   },
   password: {
     defaultValue: "",
-    isRequired: true,
-    label: "Password",
-    helperText: "Please enter your password",
-    errorMessage: {
-      required: "Password is required",
+    helperText: "Your Password",
+    required: { message: "Please enter your password" },
+    validation: {
+      longerThanOneChar: {
+        validator: value => value.length > 1,
+        message: "Password must be longer than 1 character",
+      },
     },
   },
   confirmPassword: {
     defaultValue: "",
-    isRequired: true,
-    validator: (value, formState) => {
-      return value === formState.password.value;
-    },
-    label: "Confirm Password",
-    helperText: "Please confirm your password",
-    errorMessage: {
-      required: "Password is required",
-      format: "Password does not match",
+    helperText: "Confirm Your Password",
+    required: { message: "Please enter your password again" },
+    validation: {
+      longerThanOneChar: {
+        validator: value => value.length > 1,
+        message: "Password must be longer than 1 character",
+      },
+      matchPassword: {
+        validator: (value, state) => value === state.password.value,
+        message: "Passwords do not match",
+      },
     },
   },
 });
