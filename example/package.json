@@ -8,7 +8,7 @@
     "build": "parcel build index.html"
   },
   "dependencies": {
-    "@andydowell/use-form-state": "^1.0.1",
+    "@andydowell/use-form-state": "^2.0.0",
     "react-app-polyfill": "^1.0.0"
   },
   "alias": {
