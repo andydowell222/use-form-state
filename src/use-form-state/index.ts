@@ -3,7 +3,7 @@ import { useRef, useState } from "react";
 type ValidationParams<Value, Data> = {
   [key: string]: {
     validator: (value: Value, formState: FormState<Data>) => boolean;
-    message: string;
+    message?: string;
   };
 };
 
@@ -120,7 +120,7 @@ const useFormState = <Data>(formFieldParams: FormFieldParams<Data>, options: For
               ([validationType, { validator, message }]) => {
                 const _isValid = validator(_state[key].value, _state);
                 if (!_isValid) {
-                  _error = { type: validationType, message: message };
+                  _error = { type: validationType, message: message || "" };
                 }
                 return _isValid;
               }
