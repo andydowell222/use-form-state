@@ -118,11 +118,11 @@ const useFormState = <Data>(formFieldParams: FormFieldParams<Data>, options: For
             let _error = undefined;
             _state[key].isValid = Object.entries(formFieldParams[key].validation!).every(
               ([validationType, { validator, message }]) => {
-                const _isValid = validator(_state[key].value, _state);
-                if (!_isValid) {
+                const isValidationPassed = validator(_state[key].value, _state);
+                if (!isValidationPassed) {
                   _error = { type: validationType, message: message || "" };
                 }
-                return _isValid;
+                return isValidationPassed;
               }
             );
             _state[key].error = shouldUpdateErrorType ? _error : _state[key].error;
