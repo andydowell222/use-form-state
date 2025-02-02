@@ -1,7 +1,7 @@
 import { createRoot } from "react-dom/client";
 import * as React from "react";
-// import { useFormState } from "../.";
-import { useFormState } from '@andydowell/use-form-state';
+import { useFormState } from "../.";
+// import { useFormState } from '@andydowell/use-form-state';
 
 type NewUser = {
   email: string;
@@ -79,7 +79,7 @@ const Form = () => {
             type="text"
             name="email"
             value={email.value}
-            onChange={e => newUser.set("email", e.target.value)}
+            onChange={e => newUser.update({ email: e.target.value })}
           />
           {email.isValid ? "✔️" : "❌"}
           <p

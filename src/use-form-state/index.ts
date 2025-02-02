@@ -100,6 +100,20 @@ const useFormState = <Data>(formFieldParams: FormFieldParams<Data>, options: For
 
   // --------------------------------------------------------------------
 
+  const update = <Key extends keyof Data>(data: Partial<Record<Key, Data[Key]>>, setInteracted: boolean = true) => {
+    setState(_state => {
+      Object.entries(data).forEach(([key, value]) => {
+        _state[key as Key].value = value as Data[Key];
+        if (setInteracted) _state[key as Key].isInteracted = true;
+      });
+      return { ..._state };
+    });
+    runValidation({ updateErrorType: false }); // errorType update is to be debounced on input change
+    debouncedErrorUpdate();
+  };
+
+  // --------------------------------------------------------------------
+
   const runValidation = (options?: { updateErrorType?: boolean }) => {
     const { updateErrorType } = options || {};
 
@@ -190,7 +204,7 @@ const useFormState = <Data>(formFieldParams: FormFieldParams<Data>, options: For
 
   // --------------------------------------------------------------------
 
-  return { state, set, checkIfAllValid, extractStateValue, reset };
+  return { state, set, update, checkIfAllValid, extractStateValue, reset };
 };
 
 const checkIfRequiredValueFilled = <T>(value: T) => {

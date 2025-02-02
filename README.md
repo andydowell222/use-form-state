@@ -45,11 +45,12 @@ You can see an example of `formFieldParams` and `options` in the [Example](#exam
 The `useFormState` hook returns an object with the following properties and methods:
 
 ```javascript
-const { state, set, checkIfAllValid, extractStateValue, reset } = useFormState(formFieldParams, options);
+const { state, set, update, checkIfAllValid, extractStateValue, reset } = useFormState(formFieldParams, options);
 ```
 
 The `state` object contains the current values and validation status of each form field. <br/>
-The `set` function allows you to update the form field values. <br/>
+The `set` function allows you to update single form field value. <br/>
+The `update` function allows you to update multiple form field values. <br/>
 The `checkIfAllValid` function checks if all fields are valid. <br/>
 The `extractStateValue` function extracts the form data in the specified format. <br/>
 The `reset` function resets the form to its initial state. <br/>
@@ -70,7 +71,7 @@ Each form field in the `state` object is represented by an object with the follo
 
 `error` is not updated immediately when the value of a form field changes. Instead, it is updated after a delay (default is 0.5 seconds) to prevent the error message from flashing when the user is typing. If the field is not interacted with, the error will not be updated. Running `checkIfAllValid({ updateErrorType: true })` will update all errors immediately.
 
-### Updating Form Field Values
+### Updating Single Form Field Value
 
 To update a form field value, use the `set` function:
 
@@ -85,6 +86,21 @@ set(key, value, setInteracted);
 | `setInteracted` | boolean                   | (Optional) Indicates whether the field should be marked as interacted. Default is `true`. | `false`                 |
 
 You can see an example of `set` in the [Example](#example) section.
+
+### Updating Multiple Form Field Values
+
+To update multiple form field values at once, use the `update` function:
+
+```javascript
+update(data, setInteracted);
+```
+
+| Parameter     | Type    | Description                                                                                   | Example                                                 |
+| ------------- | ------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| data          | object  | An object with key-value pairs where the key is the field key and the value is the new value. | `{ email: "", password: "" }` |
+| setInteracted | boolean | (Optional) Indicates whether the fields should be marked as interacted. Default is `true`.    | `false`                                                 |
+
+You can see an example of `update` in the [Example](#example) section.
 
 ### Checking Form Field Validity
 
@@ -204,7 +220,7 @@ const { email, password, confirmPassword } = newUser.state;
 
 <form onSubmit={onSubmit}>
   <div>
-    <Input value={email.value} onChange={e => newUser.set("email", e.target.value)} />
+    <Input value={email.value} onChange={e => newUser.update({ email: e.target.value })} />
     <p>{email.error?.message || email.helperText}</p>
   </div>
   <div>
