@@ -100,7 +100,7 @@ const useFormState = <Data>(formFieldParams: FormFieldParams<Data>, options: For
 
   // --------------------------------------------------------------------
 
-  const update = <Key extends keyof Data>(data: Partial<Record<Key, Data[Key]>>, setInteracted: boolean = true) => {
+  const update = <Key extends keyof Data>(data: Partial<Data>, setInteracted: boolean = true) => {
     setState(_state => {
       Object.entries(data).forEach(([key, value]) => {
         _state[key as Key].value = value as Data[Key];

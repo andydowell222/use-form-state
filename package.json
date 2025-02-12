@@ -1,6 +1,6 @@
 {
   "name": "@andydowell/use-form-state",
-  "version": "2.0.3",
+  "version": "2.0.4",
   "author": "andydowell",
   "license": "MIT",
   "main": "dist/index.js",
