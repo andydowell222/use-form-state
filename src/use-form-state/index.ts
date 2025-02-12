@@ -80,10 +80,15 @@ const useFormState = <Data>(formFieldParams: FormFieldParams<Data>, options: For
   // --------------------------------------------------------------------
 
   const debouncedErrorUpdate = () => {
+    runValidation({ updateErrorType: errorUpdateDelayInSeconds > 0 ? false : true });
+
     clearTimeout(inputDebounceRef.current);
-    inputDebounceRef.current = setTimeout(() => {
-      runValidation();
-    }, errorUpdateDelayInSeconds * 1000);
+
+    if (errorUpdateDelayInSeconds > 0) {
+      inputDebounceRef.current = setTimeout(() => {
+        runValidation();
+      }, errorUpdateDelayInSeconds * 1000);
+    }
   };
 
   // --------------------------------------------------------------------
@@ -94,7 +99,6 @@ const useFormState = <Data>(formFieldParams: FormFieldParams<Data>, options: For
       if (setInteracted) _state[key].isInteracted = true;
       return { ..._state };
     });
-    runValidation({ updateErrorType: false }); // errorType update is to be debounced on input change
     debouncedErrorUpdate();
   };
 
@@ -108,7 +112,6 @@ const useFormState = <Data>(formFieldParams: FormFieldParams<Data>, options: For
       });
       return { ..._state };
     });
-    runValidation({ updateErrorType: false }); // errorType update is to be debounced on input change
     debouncedErrorUpdate();
   };
 
