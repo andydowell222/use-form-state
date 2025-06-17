@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 type ValidationParams<Value, Data> = {
   [key: string]: {
@@ -19,6 +19,7 @@ type FormFieldParams<Data> = {
 
 type FormStateOptions = {
   errorUpdateDelayInSeconds?: number;
+  reinitializeDependencies?: any[];
 };
 
 type FormState<Data> = {
@@ -41,7 +42,7 @@ type FormFieldState<Value = any> = {
 // --------------------------------------------------------------------
 
 const useFormState = <Data>(formFieldParams: FormFieldParams<Data>, options: FormStateOptions = {}) => {
-  const { errorUpdateDelayInSeconds = 0.5 } = options;
+  const { errorUpdateDelayInSeconds = 0.5, reinitializeDependencies = [] } = options;
 
   const initialFormState = (() => {
     const _state = {} as FormState<Data>;
@@ -76,6 +77,14 @@ const useFormState = <Data>(formFieldParams: FormFieldParams<Data>, options: For
   const [state, setState] = useState<FormState<Data>>(initialFormState);
 
   const inputDebounceRef = useRef<NodeJS.Timeout>();
+
+  // --------------------------------------------------------------------
+
+  // reinitialize state on dependencies change
+  // this is useful when form state needs to be reset based on some external changes
+  useEffect(() => {
+    setState(initialFormState);
+  }, [...reinitializeDependencies]);
 
   // --------------------------------------------------------------------
 

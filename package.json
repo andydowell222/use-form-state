@@ -1,6 +1,6 @@
 {
   "name": "@andydowell/use-form-state",
-  "version": "2.0.5",
+  "version": "2.1.0",
   "author": "andydowell",
   "license": "MIT",
   "main": "dist/index.js",
@@ -67,7 +67,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://gitlab.com/public-packages1/useformstate"
+    "url": "git+https://gitlab.com/public-packages1/useformstate.git"
   },
   "bugs": {
     "url": "https://gitlab.com/public-packages1/useformstate/-/issues"

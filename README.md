@@ -37,6 +37,7 @@ The second parameter `options` is an object with the following properties:
 | Property                  | Type   | Description                                                                                   |
 | ------------------------- | ------ | --------------------------------------------------------------------------------------------- |
 | errorUpdateDelayInSeconds | number | (Optional) Specifies the delay in seconds before the error type is updated. Default is `0.5`. |
+| reinitializeDependencies | any[] | (Optional) An array of dependencies that will trigger a reinitialization of the form state. Just like the dependencies array in `useEffect`, this allows you to reinitialize the form state when certain values change. Default is an empty array (`[]`). |
 
 You can see an example of `formFieldParams` and `options` in the [Example](#example) section.
 
