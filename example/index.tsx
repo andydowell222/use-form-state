@@ -64,7 +64,7 @@ const Form = () => {
     e.preventDefault();
     const isValid = newUser.checkIfAllValid();
     if (!isValid) return;
-    console.table(newUser.extractStateValue({ format: "object" }));
+    console.table(newUser.getValues({ format: "object" }));
   };
 
   const { email, password, confirmPassword } = newUser.state;
@@ -79,7 +79,7 @@ const Form = () => {
             type="text"
             name="email"
             value={email.value}
-            onChange={e => newUser.update({ email: e.target.value })}
+            onChange={e => newUser.setMany({ email: e.target.value })}
           />
           {email.isValid ? "✔️" : "❌"}
           <p
