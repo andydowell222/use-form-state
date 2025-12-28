@@ -28,7 +28,7 @@ Each field in the `formFieldParams` is defined by a key-value pair, where the ke
 | ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
 | defaultValue | The default value for the form field.                                                                                                                                                                                                   |                                                                    | ""                                                                                                                     |
 | required     | (Optional) Specifies whether the form field is required.                                                                                                                                                                                | { message: string }                                                | { message: "Please enter your email address" }                                                                         |
-| validation   | (Optional) An object that defines custom validation rules for the form field. Each rule is represented by a key-value pair, where the key is the name of the rule and the value is an object with `validator` and `message` properties. | `{[key]: {validator: (value, state) => boolean, message: string}}` | `{ longerThanOneChar: { validator: value => value.length > 1, message: 'Password must be longer than 1 character' } }` |
+| validation   | (Optional) An object that defines custom validation rules for the form field. Each rule is represented by a key-value pair, where the key is the name of the rule and the value is an object with `validator`, optional `message`, and optional `order` properties. | `{ [key]: { validator: (value, state) => boolean, message?: string, order?: number } }` | `{ longerThanOneChar: { validator: value => value.length > 1, message: 'Password must be longer than 1 character', order: 1 } }` |
 | label        | (Optional) Default as empty string (`""`).                                                                                                                                                                                              | string                                                             | 'Email'                                                                                                                |
 | helperText   | (Optional) Text that provides additional information or guidance for the form field.                                                                                                                                                    | string                                                             | 'Please enter a valid email'                                                                                           |
 
@@ -46,14 +46,14 @@ You can see an example of `formFieldParams` and `options` in the [Example](#exam
 The `useFormState` hook returns an object with the following properties and methods:
 
 ```javascript
-const { state, set, update, checkIfAllValid, extractStateValue, reset } = useFormState(formFieldParams, options);
+const { state, set, setMany, checkIfAllValid, getValues, reset } = useFormState(formFieldParams, options);
 ```
 
 The `state` object contains the current values and validation status of each form field. <br/>
-The `set` function allows you to update single form field value. <br/>
-The `update` function allows you to update multiple form field values. <br/>
+The `set` function allows you to update a single form field value (marking the field as interacted by default, which also triggers error updates after the configured delay). <br/>
+The `setMany` function allows you to update multiple form field values (also marking them as interacted by default). <br/>
 The `checkIfAllValid` function checks if all fields are valid. <br/>
-The `extractStateValue` function extracts the form data in the specified format. <br/>
+The `getValues` function extracts the form data in the specified format. <br/>
 The `reset` function resets the form to its initial state. <br/>
 
 ### Form State
@@ -90,18 +90,18 @@ You can see an example of `set` in the [Example](#example) section.
 
 ### Updating Multiple Form Field Values
 
-To update multiple form field values at once, use the `update` function:
+To update multiple form field values at once, use the `setMany` function:
 
 ```javascript
-update(data, setInteracted);
+setMany(data, setInteracted);
 ```
 
-| Parameter     | Type    | Description                                                                                   | Example                                                 |
-| ------------- | ------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| data          | object  | An object with key-value pairs where the key is the field key and the value is the new value. | `{ email: "", password: "" }` |
-| setInteracted | boolean | (Optional) Indicates whether the fields should be marked as interacted. Default is `true`.    | `false`                                                 |
+| Parameter     | Type    | Description                                                                                   | Example                              |
+| ------------- | ------- | --------------------------------------------------------------------------------------------- | ------------------------------------ |
+| data          | object  | An object with key-value pairs where the key is the field key and the value is the new value. | `{ email: "", password: "" }`        |
+| setInteracted | boolean | (Optional) Indicates whether the fields should be marked as interacted. Default is `true`.    | `false`                              |
 
-You can see an example of `update` in the [Example](#example) section.
+You can see an example of `setMany` in the [Example](#example) section.
 
 ### Checking Form Field Validity
 
@@ -121,31 +121,45 @@ const isFormValid = checkIfAllValid(options);
 
 The `options` parameter is an object with the following properties:
 
-| Parameter         | Type    | Description                                                                                      |
-| ----------------- | ------- | ------------------------------------------------------------------------------------------------ |
-| `updateErrorType` | boolean | (Optional) Specifies whether the error types of all fields should be updated. Default is `true`. |
+| Parameter         | Type    | Description                                                                                                  |
+| ----------------- | ------- | ------------------------------------------------------------------------------------------------------------ |
+| `updateErrorType` | boolean | (Optional) Specifies whether the error types of all fields should be updated. Default is `true`.             |
+| `commitState`     | boolean | (Optional) When `false`, validation runs without updating state, useful for a read-only validity check.      |
 
 The validation will check all form fields based on their defined rules and update their validation status and error messages accordingly. <br/>
 You can see an example of `checkIfAllValid` in the [Example](#example) section.
 
+### Validation order
+
+Validation rules run in a deterministic order. By default, the hook evaluates rules in the order they are defined. You can override this by providing an `order` number on any rule; lower numbers run first, and ties keep the insertion order. The first failing rule sets the error type to that rule's key and uses its message.
+
 ### Extracting Form Data
 
-You can extract the form data in different formats using the `extractStateValue` function. Currently, two formats are supported: `'object'` and `'formdata'`.
+You can extract the form data in different formats using the `getValues` function. Currently, two formats are supported: `'object'` and `'formdata'`.
 
 Example:<br/>
 To extract the form data as an object:
 
 ```javascript
-const dataObject = extractStateValue({ format: "object" });
+const dataObject = getValues({ format: "object" });
 ```
 
 To extract the form data as FormData:
 
 ```javascript
-const formData = extractStateValue({ format: "formdata" });
+const formData = getValues({ format: "formdata" });
 ```
 
-You can see an example of `extractStateValue` in the [Example](#example) section.
+You can see an example of `getValues` in the [Example](#example) section.
+
+When using the `formdata` format, complex values are serialized for transport:
+
+- `FileList`: each file is appended under the field key.
+- `Blob`: appended directly.
+- `Date`: serialized to ISO string via `toISOString()`.
+- `Map` / `Set` / plain objects: JSON stringified (maps/sets become arrays of entries/values).
+- Arrays: each element is appended separately under the same key.
+- `null` / `undefined`: appended as an empty string.
 
 ### Resetting the Form
 
@@ -211,7 +225,7 @@ const onSubmit = async e => {
   e.preventDefault();
   if (!newUser.checkIfAllValid()) return;
 
-  const formdata = newUser.extractStateValue({ format: "formdata" });
+  const formdata = newUser.getValues({ format: "formdata" });
   // ... Submit formdata to server
 };
 
@@ -221,7 +235,7 @@ const { email, password, confirmPassword } = newUser.state;
 
 <form onSubmit={onSubmit}>
   <div>
-    <Input value={email.value} onChange={e => newUser.update({ email: e.target.value })} />
+    <Input value={email.value} onChange={e => newUser.setMany({ email: e.target.value })} />
     <p>{email.error?.message || email.helperText}</p>
   </div>
   <div>
