@@ -1,101 +1,84 @@
 import { useEffect, useRef, useState } from "react";
+import { FormFieldParams, FormFieldState, FormState, FormStateOptions } from "../types";
+import { appendToFormData, applyValidation, createInitialStateSnapshot } from "../utils";
 
-type ValidationParams<Value, Data> = {
-  [key: string]: {
-    validator: (value: Value, formState: FormState<Data>) => boolean;
-    message?: string;
-  };
-};
+// --------------------------------------------------------------------
 
-type FormFieldParams<Data> = {
-  [Key in keyof Data]: {
-    defaultValue: Data[Key];
-    required?: { message: string };
-    validation?: ValidationParams<Data[Key], Data>;
-    label?: string;
-    helperText?: string;
-  };
-};
-
-type FormStateOptions = {
-  errorUpdateDelayInSeconds?: number;
-  reinitializeDependencies?: any[];
-};
-
-type FormState<Data> = {
-  [Key in keyof Data]: FormFieldState<Data[Key]>;
-};
-
-type FormFieldState<Value = any> = {
-  label: string;
-  value: Value;
-  isValid: boolean;
-  isInteracted: boolean;
-  isRequired: boolean;
-  helperText?: string;
-  error?: {
-    type?: string;
-    message?: string;
-  };
-};
+const DEFAULT_ERROR_DELAY_SECONDS = 0.5;
 
 // --------------------------------------------------------------------
 
 const useFormState = <Data>(formFieldParams: FormFieldParams<Data>, options: FormStateOptions = {}) => {
-  const { errorUpdateDelayInSeconds = 0.5, reinitializeDependencies = [] } = options;
+  const { errorUpdateDelayInSeconds = DEFAULT_ERROR_DELAY_SECONDS, reinitializeDependencies = [] } = options;
 
-  const initialFormState = (() => {
-    const _state = {} as FormState<Data>;
-    for (const key in formFieldParams) {
-      _state[key] = {
-        value: formFieldParams[key].defaultValue,
-        label: formFieldParams[key].label || "",
-        helperText: formFieldParams[key].helperText,
-        isValid: false,
-        isInteracted: false,
-        isRequired: !!formFieldParams[key].required,
-        error: undefined,
-      };
+  const [state, setState] = useState<FormState<Data>>(() => createInitialStateSnapshot(formFieldParams));
+
+  // track timer and an incrementing run id so stale callbacks no-op
+  const validationScheduleRef = useRef<{ timer: ReturnType<typeof setTimeout> | null; runId: number }>({
+    timer: null,
+    runId: 0,
+  });
+  // keep the validation result with updated errors until the delay expires, then commit it
+  const pendingErrorStateRef = useRef<FormState<Data> | null>(null);
+
+  const clearPendingValidation = () => {
+    validationScheduleRef.current.runId += 1;
+    pendingErrorStateRef.current = null;
+    if (validationScheduleRef.current.timer !== null) {
+      clearTimeout(validationScheduleRef.current.timer);
+      validationScheduleRef.current.timer = null;
     }
-    for (const key in formFieldParams) {
-      switch (true) {
-        case _state[key].isRequired && !checkIfRequiredValueFilled(_state[key].value):
-          _state[key].isValid = false;
-          break;
-        case Boolean(formFieldParams[key].validation):
-          _state[key].isValid = Object.values(formFieldParams[key].validation!).every(({ validator }) =>
-            validator(_state[key].value, _state)
-          );
-          break;
-        default:
-          _state[key].isValid = true;
-      }
-    }
-    return _state;
-  })();
-
-  const [state, setState] = useState<FormState<Data>>(initialFormState);
-
-  const inputDebounceRef = useRef<NodeJS.Timeout>();
+  };
 
   // --------------------------------------------------------------------
 
   // reinitialize state on dependencies change
   // this is useful when form state needs to be reset based on some external changes
   useEffect(() => {
-    setState(initialFormState);
+    clearPendingValidation();
+    setState(createInitialStateSnapshot(formFieldParams));
   }, [...reinitializeDependencies]);
+
+  // clear any pending timers on unmount to avoid stale commits after reset/reinit
+  useEffect(() => () => clearPendingValidation(), []);
 
   // --------------------------------------------------------------------
 
-  const debouncedErrorUpdate = () => {
-    runValidation({ updateErrorType: errorUpdateDelayInSeconds > 0 ? false : true });
+  // validation flow: runs validation immediately, but when delaying errors it stages the new errors and
+  // keeps the previous ones visible until the timer commits, avoiding flicker when users are typing.
+  const scheduleValidationRun = (options?: { updateErrorType?: boolean }) => {
+    const { updateErrorType } = options || {};
 
-    clearTimeout(inputDebounceRef.current);
+    clearPendingValidation();
+    const runId = validationScheduleRef.current.runId;
+    const shouldDelayErrorUpdate = errorUpdateDelayInSeconds > 0 && updateErrorType !== false;
 
-    if (errorUpdateDelayInSeconds > 0) {
-      inputDebounceRef.current = setTimeout(() => {
-        runValidation();
+    setState(prevState => {
+      const { nextState } = applyValidation(prevState, formFieldParams, { updateErrorType });
+
+      if (!shouldDelayErrorUpdate) {
+        pendingErrorStateRef.current = null;
+        return nextState;
+      }
+
+      pendingErrorStateRef.current = nextState;
+
+      const immediateState = Object.keys(nextState).reduce((acc, key) => {
+        const k = key as keyof Data;
+        acc[k] = { ...nextState[k], error: prevState[k].error };
+        return acc;
+      }, {} as FormState<Data>);
+
+      return immediateState;
+    });
+
+    if (shouldDelayErrorUpdate) {
+      validationScheduleRef.current.timer = setTimeout(() => {
+        if (runId !== validationScheduleRef.current.runId) return;
+        const pending = pendingErrorStateRef.current;
+        if (!pending) return;
+        pendingErrorStateRef.current = null;
+        setState(() => ({ ...pending } as FormState<Data>));
       }, errorUpdateDelayInSeconds * 1000);
     }
   };
@@ -108,12 +91,13 @@ const useFormState = <Data>(formFieldParams: FormFieldParams<Data>, options: For
       if (setInteracted) _state[key].isInteracted = true;
       return { ..._state };
     });
-    debouncedErrorUpdate();
+    const updateErrorType = setInteracted ? true : undefined;
+    scheduleValidationRun({ updateErrorType });
   };
 
   // --------------------------------------------------------------------
 
-  const update = <Key extends keyof Data>(data: Partial<Data>, setInteracted: boolean = true) => {
+  const setMany = <Key extends keyof Data>(data: Partial<Data>, setInteracted: boolean = true) => {
     setState(_state => {
       Object.entries(data).forEach(([key, value]) => {
         _state[key as Key].value = value as Data[Key];
@@ -121,61 +105,31 @@ const useFormState = <Data>(formFieldParams: FormFieldParams<Data>, options: For
       });
       return { ..._state };
     });
-    debouncedErrorUpdate();
+    const updateErrorType = setInteracted ? true : undefined;
+    scheduleValidationRun({ updateErrorType });
   };
 
   // --------------------------------------------------------------------
 
-  const runValidation = (options?: { updateErrorType?: boolean }) => {
-    const { updateErrorType } = options || {};
+  const checkIfAllValid = (options?: { updateErrorType?: boolean; commitState?: boolean }) => {
+    const { updateErrorType = true, commitState = true } = options || {};
 
+    // allow callers to just check validity without disrupting pending error updates or triggering renders
+    if (!commitState) {
+      const { allValid } = applyValidation(state, formFieldParams, { updateErrorType });
+      return allValid;
+    }
+
+    clearPendingValidation();
+
+    let allValid = true;
     setState(_state => {
-      for (let key in _state) {
-        const shouldUpdateErrorType = updateErrorType ?? _state[key].isInteracted;
-
-        switch (true) {
-          case _state[key].isRequired && !checkIfRequiredValueFilled(_state[key].value):
-            _state[key].isValid = false;
-            _state[key].error = shouldUpdateErrorType
-              ? { type: "required", message: formFieldParams[key].required?.message }
-              : _state[key].error;
-            break;
-          case Boolean(formFieldParams[key].validation):
-            let _error = undefined;
-            _state[key].isValid = Object.entries(formFieldParams[key].validation!).every(
-              ([validationType, { validator, message }]) => {
-                const isValidationPassed = validator(_state[key].value, _state);
-                if (!isValidationPassed) {
-                  _error = { type: validationType, message: message || "" };
-                }
-                return isValidationPassed;
-              }
-            );
-            _state[key].error = shouldUpdateErrorType ? _error : _state[key].error;
-            break;
-          default:
-            _state[key].isValid = true;
-            _state[key].error = shouldUpdateErrorType ? undefined : _state[key].error;
-        }
-      }
-      return { ..._state };
+      const { nextState, allValid: validated } = applyValidation(_state, formFieldParams, { updateErrorType });
+      allValid = validated;
+      return nextState;
     });
-  };
 
-  // --------------------------------------------------------------------
-
-  const checkIfAllValid = (options?: { updateErrorType?: boolean }) => {
-    const { updateErrorType = true } = options || {};
-
-    if (updateErrorType) {
-      runValidation({ updateErrorType: true });
-    }
-
-    for (let key in state) {
-      if (!state[key].isValid) return false;
-    }
-
-    return true;
+    return allValid;
   };
 
   // --------------------------------------------------------------------
@@ -189,12 +143,12 @@ const useFormState = <Data>(formFieldParams: FormFieldParams<Data>, options: For
     formdata: FormData;
   };
 
-  const extractStateValue = <F extends DataExtractFormat>({ format }: DataExtractOptions<F>): DataExtractOutput[F] => {
+  const getValues = <F extends DataExtractFormat>({ format }: DataExtractOptions<F>): DataExtractOutput[F] => {
     switch (format) {
       case "formdata":
         const formData = new FormData();
         Object.entries(state).forEach(([key, data]) => {
-          formData.append(key, (data as FormFieldState).value);
+          appendToFormData(formData, key, (data as FormFieldState).value);
         });
         return formData as DataExtractOutput[F];
       case "object":
@@ -210,29 +164,13 @@ const useFormState = <Data>(formFieldParams: FormFieldParams<Data>, options: For
   // --------------------------------------------------------------------
 
   const reset = () => {
-    setState(initialFormState);
-    clearTimeout(inputDebounceRef.current);
+    clearPendingValidation();
+    setState(createInitialStateSnapshot(formFieldParams));
   };
 
   // --------------------------------------------------------------------
 
-  return { state, set, update, checkIfAllValid, extractStateValue, reset };
+  return { state, set, setMany, checkIfAllValid, getValues, reset };
 };
 
-const checkIfRequiredValueFilled = <T>(value: T) => {
-  switch (typeof value) {
-    case "number":
-      if (isNaN(value) || !Number.isFinite(value)) return false;
-      return true;
-    case "object":
-      if (Array.isArray(value)) return value.length > 0;
-      if (value == null) return false;
-      return Boolean(value);
-    case "string":
-    case "boolean":
-    default:
-      return Boolean(value);
-  }
-};
-
-export { useFormState, FormFieldParams, FormState, FormFieldState, FormStateOptions };
+export { useFormState };
