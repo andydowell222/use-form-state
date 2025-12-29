@@ -46,15 +46,13 @@ const useFormState = <Data>(formFieldParams: FormFieldParams<Data>, options: For
 
   // validation flow: runs validation immediately, but when delaying errors it stages the new errors and
   // keeps the previous ones visible until the timer commits, avoiding flicker when users are typing.
-  const scheduleValidationRun = (options?: { updateErrorType?: boolean }) => {
-    const { updateErrorType } = options || {};
-
+  const scheduleValidationRun = () => {
     clearPendingValidation();
     const runId = validationScheduleRef.current.runId;
-    const shouldDelayErrorUpdate = errorUpdateDelayInSeconds > 0 && updateErrorType !== false;
+    const shouldDelayErrorUpdate = errorUpdateDelayInSeconds > 0;
 
     setState(prevState => {
-      const { nextState } = applyValidation(prevState, formFieldParams, { updateErrorType });
+      const { nextState } = applyValidation(prevState, formFieldParams);
 
       if (!shouldDelayErrorUpdate) {
         pendingErrorStateRef.current = null;
@@ -91,8 +89,7 @@ const useFormState = <Data>(formFieldParams: FormFieldParams<Data>, options: For
       const nextField = { ...prevField, value, isInteracted: setInteracted ? true : prevField.isInteracted };
       return { ...(prev as any), [key]: nextField } as FormState<Data>;
     });
-    const updateErrorType = setInteracted ? true : undefined;
-    scheduleValidationRun({ updateErrorType });
+    scheduleValidationRun();
   };
 
   // --------------------------------------------------------------------
@@ -107,18 +104,17 @@ const useFormState = <Data>(formFieldParams: FormFieldParams<Data>, options: For
       });
       return nextState;
     });
-    const updateErrorType = setInteracted ? true : undefined;
-    scheduleValidationRun({ updateErrorType });
+    scheduleValidationRun();
   };
 
   // --------------------------------------------------------------------
 
-  const checkIfAllValid = (options?: { updateErrorType?: boolean; commitState?: boolean }) => {
-    const { updateErrorType = true, commitState = true } = options || {};
+  const checkIfAllValid = (options?: { commitState?: boolean }) => {
+    const { commitState = true } = options || {};
 
     // allow callers to just check validity without disrupting pending error updates or triggering renders
     if (!commitState) {
-      const { allValid } = applyValidation(state, formFieldParams, { updateErrorType });
+      const { allValid } = applyValidation(state, formFieldParams);
       return allValid;
     }
 
@@ -126,7 +122,7 @@ const useFormState = <Data>(formFieldParams: FormFieldParams<Data>, options: For
 
     let allValid = true;
     setState(_state => {
-      const { nextState, allValid: validated } = applyValidation(_state, formFieldParams, { updateErrorType });
+      const { nextState, allValid: validated } = applyValidation(_state, formFieldParams, { updateAllFieldsError: true });
       allValid = validated;
       return nextState;
     });

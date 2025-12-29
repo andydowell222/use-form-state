@@ -89,6 +89,7 @@ const Form = () => {
               fontSize: "0.9rem",
             }}
           >
+            Interacted: {email.isInteracted ? "✔️" : "❌"} <br />
             {email.error?.type} <br />
             {email.error?.message || email.helperText} <br />
           </p>
@@ -110,6 +111,7 @@ const Form = () => {
               fontSize: "0.9rem",
             }}
           >
+            Interacted: {password.isInteracted ? "✔️" : "❌"} <br />
             {password.error?.type} <br />
             {password.error?.message || password.helperText} <br />
           </p>
@@ -131,6 +133,7 @@ const Form = () => {
               fontSize: "0.9rem",
             }}
           >
+            Interacted: {confirmPassword.isInteracted ? "✔️" : "❌"} <br />
             {confirmPassword.error?.type} <br />
             {confirmPassword.error?.message || confirmPassword.helperText} <br />
           </p>

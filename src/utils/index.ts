@@ -56,9 +56,9 @@ const cloneFormState = <Data>(state: FormState<Data>): FormState<Data> => {
 const applyValidation = <Data>(
   currentState: FormState<Data>,
   formFieldParams: FormFieldParams<Data>,
-  options?: { updateErrorType?: boolean }
+  options?: { updateAllFieldsError?: boolean }
 ) => {
-  const { updateErrorType } = options || {};
+  const { updateAllFieldsError } = options || {};
   const stateSnapshot = cloneFormState(currentState);
   const nextState = {} as FormState<Data>;
   let allValid = true;
@@ -66,7 +66,7 @@ const applyValidation = <Data>(
   for (const key in stateSnapshot) {
     const fieldKey = key as keyof Data;
     const prevFieldState = stateSnapshot[fieldKey];
-    const shouldUpdateErrorType = updateErrorType ?? prevFieldState.isInteracted;
+    const shouldUpdateError = updateAllFieldsError ?? prevFieldState.isInteracted;
     const { isValid, error } = getFieldValidationOutcome(fieldKey, formFieldParams, stateSnapshot);
 
     if (!isValid) allValid = false;
@@ -74,7 +74,7 @@ const applyValidation = <Data>(
     nextState[fieldKey] = {
       ...prevFieldState,
       isValid,
-      error: shouldUpdateErrorType ? error : prevFieldState.error,
+      error: shouldUpdateError ? error : prevFieldState.error,
     };
   }
 

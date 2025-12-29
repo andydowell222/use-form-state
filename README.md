@@ -24,20 +24,20 @@ Before using the hook, you need to define the `formFieldParams`. These props rep
 
 Each field in the `formFieldParams` is defined by a key-value pair, where the key is the name of the field and the value is an object with the following properties:
 
-| Property     | Description                                                                                                                                                                                                                             | Type                                                               | Example                                                                                                                |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- |
-| defaultValue | The default value for the form field.                                                                                                                                                                                                   |                                                                    | ""                                                                                                                     |
-| required     | (Optional) Specifies whether the form field is required.                                                                                                                                                                                | { message: string }                                                | { message: "Please enter your email address" }                                                                         |
+| Property     | Description                                                                                                                                                                                                                                                         | Type                                                                                    | Example                                                                                                                          |
+| ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| defaultValue | The default value for the form field.                                                                                                                                                                                                                               |                                                                                         | ""                                                                                                                               |
+| required     | (Optional) Specifies whether the form field is required.                                                                                                                                                                                                            | { message: string }                                                                     | { message: "Please enter your email address" }                                                                                   |
 | validation   | (Optional) An object that defines custom validation rules for the form field. Each rule is represented by a key-value pair, where the key is the name of the rule and the value is an object with `validator`, optional `message`, and optional `order` properties. | `{ [key]: { validator: (value, state) => boolean, message?: string, order?: number } }` | `{ longerThanOneChar: { validator: value => value.length > 1, message: 'Password must be longer than 1 character', order: 1 } }` |
-| label        | (Optional) Default as empty string (`""`).                                                                                                                                                                                              | string                                                             | 'Email'                                                                                                                |
-| helperText   | (Optional) Text that provides additional information or guidance for the form field.                                                                                                                                                    | string                                                             | 'Please enter a valid email'                                                                                           |
+| label        | (Optional) Default as empty string (`""`).                                                                                                                                                                                                                          | string                                                                                  | 'Email'                                                                                                                          |
+| helperText   | (Optional) Text that provides additional information or guidance for the form field.                                                                                                                                                                                | string                                                                                  | 'Please enter a valid email'                                                                                                     |
 
 The second parameter `options` is an object with the following properties:
 
-| Property                  | Type   | Description                                                                                   |
-| ------------------------- | ------ | --------------------------------------------------------------------------------------------- |
-| errorUpdateDelayInSeconds | number | (Optional) Specifies the delay in seconds before the error type is updated. Default is `0.5`. |
-| reinitializeDependencies | any[] | (Optional) An array of dependencies that will trigger a reinitialization of the form state. Just like the dependencies array in `useEffect`, this allows you to reinitialize the form state when certain values change. Default is an empty array (`[]`). |
+| Property                  | Type   | Description                                                                                                                                                                                                                                               |
+| ------------------------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| errorUpdateDelayInSeconds | number | (Optional) Specifies the delay in seconds before the error type is updated. Default is `0.5`.                                                                                                                                                             |
+| reinitializeDependencies  | any[]  | (Optional) An array of dependencies that will trigger a reinitialization of the form state. Just like the dependencies array in `useEffect`, this allows you to reinitialize the form state when certain values change. Default is an empty array (`[]`). |
 
 You can see an example of `formFieldParams` and `options` in the [Example](#example) section.
 
@@ -70,7 +70,7 @@ Each form field in the `state` object is represented by an object with the follo
 | `helperText`   | A helper text that provides additional information or instructions for the form field.                                                                                                                                | `state.email.helperText`                                                         |
 | `error`        | An object that represents an error associated with the form field. It has two properties: `type` (the type of error) and `message` (the error message). If there is no error, this property will be `undefined`.      | `state.email.error`<br>`state.email.error?.type`<br>`state.email.error?.message` | `{ type: "required", message: "Please enter your email address" }` |
 
-`error` is not updated immediately when the value of a form field changes. Instead, it is updated after a delay (default is 0.5 seconds) to prevent the error message from flashing when the user is typing. If the field is not interacted with, the error will not be updated. Running `checkIfAllValid({ updateErrorType: true })` will update all errors immediately.
+`error` is not updated immediately when the value of a form field changes. Instead, it is updated after a delay (default is 0.5 seconds) to prevent the error message from flickering when the user is typing. If the field is not interacted with, the error will not be updated. To force immediate error updates, you can use the `checkIfAllValid` function, it will update all errors immediately.
 
 ### Updating Single Form Field Value
 
@@ -96,10 +96,10 @@ To update multiple form field values at once, use the `setMany` function:
 setMany(data, setInteracted);
 ```
 
-| Parameter     | Type    | Description                                                                                   | Example                              |
-| ------------- | ------- | --------------------------------------------------------------------------------------------- | ------------------------------------ |
-| data          | object  | An object with key-value pairs where the key is the field key and the value is the new value. | `{ email: "", password: "" }`        |
-| setInteracted | boolean | (Optional) Indicates whether the fields should be marked as interacted. Default is `true`.    | `false`                              |
+| Parameter     | Type    | Description                                                                                   | Example                       |
+| ------------- | ------- | --------------------------------------------------------------------------------------------- | ----------------------------- |
+| data          | object  | An object with key-value pairs where the key is the field key and the value is the new value. | `{ email: "", password: "" }` |
+| setInteracted | boolean | (Optional) Indicates whether the fields should be marked as interacted. Default is `true`.    | `false`                       |
 
 You can see an example of `setMany` in the [Example](#example) section.
 
@@ -121,12 +121,14 @@ const isFormValid = checkIfAllValid(options);
 
 The `options` parameter is an object with the following properties:
 
-| Parameter         | Type    | Description                                                                                                  |
-| ----------------- | ------- | ------------------------------------------------------------------------------------------------------------ |
-| `updateErrorType` | boolean | (Optional) Specifies whether the error types of all fields should be updated. Default is `true`.             |
-| `commitState`     | boolean | (Optional) When `false`, validation runs without updating state, useful for a read-only validity check.      |
+| Parameter     | Type    | Description                                                                                                                |
+| ------------- | ------- | -------------------------------------------------------------------------------------------------------------------------- |
+| `commitState` | boolean | (Optional) When `false`, validation runs without updating state, useful for a read-only validity check. Default is `true`. |
 
 The validation will check all form fields based on their defined rules and update their validation status and error messages accordingly. <br/>
+
+Note: When `commitState` is set to `false`, the validation runs as a read-only check — it does not update the hook's state, does not commit error messages, and will not clear or commit any pending delayed error updates or timers. Use `checkIfAllValid({ commitState: false })` when you need a synchronous validity check without causing re-renders or affecting pending error state. 
+
 You can see an example of `checkIfAllValid` in the [Example](#example) section.
 
 ### Validation order
