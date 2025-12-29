@@ -34,11 +34,24 @@ const appendToFormData = (formData: FormData, key: string, value: unknown) => {
   formData.append(key, value == null ? "" : String(value));
 };
 
+// Clone the whole form state so validators cannot mutate the live object
+const cloneFormState = <Data>(state: FormState<Data>): FormState<Data> => {
+  const clonedState = {} as FormState<Data>;
+
+  for (const key in state) {
+    clonedState[key] = {
+      ...state[key],
+      value: deepCloneValue(state[key].value),
+    };
+    Object.freeze(clonedState[key]);
+  }
+
+  return Object.freeze(clonedState);
+};
+
 /**
  * Runs validations using the provided state and field params.
- * Inputs are read as-is (no deep clone), so callers should treat
- * `currentState` and `formFieldParams` as immutable during a run to
- * avoid accidental mutation affecting other consumers.
+ * Makes a cloned, frozen snapshot so validators cannot mutate the live state.
  */
 const applyValidation = <Data>(
   currentState: FormState<Data>,
@@ -46,7 +59,7 @@ const applyValidation = <Data>(
   options?: { updateErrorType?: boolean }
 ) => {
   const { updateErrorType } = options || {};
-  const stateSnapshot: Readonly<FormState<Data>> = currentState; // preserve original field states during this run
+  const stateSnapshot = cloneFormState(currentState);
   const nextState = {} as FormState<Data>;
   let allValid = true;
 

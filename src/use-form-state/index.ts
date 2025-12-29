@@ -86,10 +86,10 @@ const useFormState = <Data>(formFieldParams: FormFieldParams<Data>, options: For
   // --------------------------------------------------------------------
 
   const set = <Key extends keyof Data>(key: Key, value: Data[Key], setInteracted: boolean = true) => {
-    setState(_state => {
-      _state[key].value = value;
-      if (setInteracted) _state[key].isInteracted = true;
-      return { ..._state };
+    setState(prev => {
+      const prevField = prev[key];
+      const nextField = { ...prevField, value, isInteracted: setInteracted ? true : prevField.isInteracted };
+      return { ...(prev as any), [key]: nextField } as FormState<Data>;
     });
     const updateErrorType = setInteracted ? true : undefined;
     scheduleValidationRun({ updateErrorType });
@@ -98,12 +98,14 @@ const useFormState = <Data>(formFieldParams: FormFieldParams<Data>, options: For
   // --------------------------------------------------------------------
 
   const setMany = <Key extends keyof Data>(data: Partial<Data>, setInteracted: boolean = true) => {
-    setState(_state => {
-      Object.entries(data).forEach(([key, value]) => {
-        _state[key as Key].value = value as Data[Key];
-        if (setInteracted) _state[key as Key].isInteracted = true;
+    setState(prev => {
+      const nextState = { ...(prev as any) } as FormState<Data>;
+      Object.entries(data).forEach(([k, v]) => {
+        const key = k as Key;
+        const prevField = prev[key];
+        nextState[key] = { ...prevField, value: v as Data[Key], isInteracted: setInteracted ? true : prevField.isInteracted };
       });
-      return { ..._state };
+      return nextState;
     });
     const updateErrorType = setInteracted ? true : undefined;
     scheduleValidationRun({ updateErrorType });
